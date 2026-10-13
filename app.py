@@ -1,6 +1,11 @@
 import html
 import json
+import os
 import re
+import socket
+import sys
+import threading
+import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from urllib.error import HTTPError
@@ -9,7 +14,8 @@ from urllib.request import Request, urlopen
 
 from flask import Flask, abort, redirect, render_template, request
 
-app = Flask(__name__)
+# The exe unpacks bundled files into sys._MEIPASS, not next to app.py.
+app = Flask(__name__, template_folder=os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "templates"))
 
 BASE = "https://letterboxd.com"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
@@ -98,5 +104,22 @@ def index():
     return render_template("index.html", urls=urls, lists=lists, common=common, errors=errors)
 
 
+@app.post("/quit")
+def quit_app():
+    threading.Timer(0.5, os._exit, [0]).start()
+    return "<body style='background:#1a1420;color:#efe6dc;font:1.1rem system-ui;padding:3rem'>Letterboxd Intersection has stopped. You can close this tab.</body>"
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    if getattr(sys, "frozen", False):  # running as the windowless PyInstaller exe
+        url = "http://localhost:5000"
+        with socket.socket() as s:
+            already_running = s.connect_ex(("127.0.0.1", 5000)) == 0
+        if not already_running:
+            sys.stdout = sys.stderr = open(os.devnull, "w")  # no console to write to
+            threading.Timer(1, webbrowser.open, [url]).start()
+            app.run(port=5000)
+        else:
+            webbrowser.open(url)
+    else:
+        app.run(debug=True)

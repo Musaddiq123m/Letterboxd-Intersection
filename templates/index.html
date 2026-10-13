@@ -107,6 +107,9 @@
   .watched summary:hover { color: var(--paper); }
   .watched[open] summary { margin-bottom: 1.5rem; }
   .watched .film img { filter: grayscale(.7) brightness(.8); }
+  .quit { margin-top: 5rem; }
+  .quit button { background: none; border: 0; padding: 0; color: var(--dust); text-decoration: underline; font-size: .875rem; }
+  .quit button:hover { color: var(--paper); }
   .empty { color: var(--dust); font-size: 1.1rem; max-width: 34rem; }
 
   @media (max-width: 30rem) {
@@ -182,6 +185,8 @@
   {% elif lists %}
   <p class="empty" style="margin-top:2rem">Add at least two working lists to compare.</p>
   {% endif %}
+
+  <form method="post" action="/quit" class="quit"><button type="submit">Quit app</button></form>
 </main>
 
 <script>
