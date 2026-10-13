@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Common Ground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1420;      /* projection-room plum */
+    --seat: #261d2e;     /* raised surfaces */
+    --line: #3a2f44;
+    --paper: #efe6dc;    /* text */
+    --dust: #a497ad;     /* secondary text */
+    --c0: #f0b54a; --c1: #e86a8a; --c2: #4fc1b0; --c3: #8c9cf2; --c4: #d98ce0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ink); color: var(--paper);
+    font: 400 1rem/1.55 "Bricolage Grotesque", system-ui, sans-serif;
+    font-variation-settings: "opsz" 14;
+  }
+  main { max-width: 72rem; margin: 0 auto; padding: 3.5rem 1rem 5rem; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--c0); outline-offset: 3px; }
+
+  h1 {
+    font-size: clamp(2.6rem, 7vw, 4.75rem); line-height: .95; margin: 0 0 .75rem;
+    font-weight: 750; font-stretch: 78%; letter-spacing: -.02em; font-variation-settings: "opsz" 96;
+  }
+  .lede { color: var(--dust); max-width: 34rem; margin: 0 0 2.5rem; font-size: 1.1rem; }
+
+  /* form */
+  form { max-width: 44rem; }
+  .row { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; }
+  .ring {
+    flex: none; width: 1.4rem; height: 1.4rem; border-radius: 50%;
+    border: 3px solid var(--c); background: color-mix(in srgb, var(--c) 18%, transparent);
+  }
+  .row input {
+    flex: 1; min-width: 0; padding: .8rem 1rem; font: inherit; color: var(--paper);
+    background: var(--seat); border: 1px solid var(--line); border-radius: .6rem;
+  }
+  .row input::placeholder { color: #75697f; }
+  .row input:focus-visible { outline-color: var(--c); border-color: var(--c); }
+  .remove {
+    flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 0;
+    background: none; color: var(--dust); font-size: 1.3rem; cursor: pointer;
+  }
+  .remove:hover { color: var(--paper); background: var(--seat); }
+  .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; padding-left: 2.15rem; }
+  button { font: inherit; cursor: pointer; }
+  .add { background: none; border: 1px dashed var(--line); color: var(--dust); padding: .7rem 1.1rem; border-radius: .6rem; }
+  .add:hover { color: var(--paper); border-color: var(--dust); }
+  .go {
+    border: 0; padding: .7rem 1.4rem; border-radius: .6rem; font-weight: 650;
+    background: var(--paper); color: var(--ink);
+  }
+  .go:disabled { opacity: .6; cursor: progress; }
+  .hint { color: var(--dust); font-size: .875rem; margin: 1rem 0 0 2.15rem; }
+
+  .errors { margin: 2rem 0 0; padding: 1rem 1.25rem; border-left: 3px solid var(--c1); background: var(--seat); border-radius: 0 .6rem .6rem 0; max-width: 44rem; }
+  .errors p { margin: .25rem 0; }
+
+  /* result header: one ring per list, overlapping — the count sits in the overlap */
+  .result { margin-top: 4.5rem; padding-top: 2.5rem; border-top: 1px solid var(--line); }
+  .venn { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+  .circles { display: flex; isolation: isolate; }
+  .circles span {
+    width: 7.5rem; height: 7.5rem; border-radius: 50%; margin-left: -3.4rem;
+    border: 3px solid var(--c); background: color-mix(in srgb, var(--c) 22%, transparent);
+    mix-blend-mode: screen;
+  }
+  .circles span:first-child { margin-left: 0; }
+  .count {
+    font-size: clamp(3.5rem, 11vw, 7rem); line-height: .85; font-weight: 800; font-stretch: 75%;
+    letter-spacing: -.03em; font-variation-settings: "opsz" 96; margin: 0;
+  }
+  .count small { display: block; font-size: 1.25rem; font-weight: 500; font-stretch: 100%; letter-spacing: 0; color: var(--dust); margin-top: .6rem; font-variation-settings: "opsz" 14; }
+  .sources { list-style: none; padding: 0; margin: 0 0 2.5rem; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; color: var(--dust); font-size: .925rem; }
+  .sources li { display: flex; align-items: center; gap: .5rem; }
+  .sources i { width: .7rem; height: .7rem; border-radius: 50%; background: var(--c); }
+
+  .grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 2rem 1.25rem; }
+  .film a { display: block; text-decoration: none; }
+  .film img {
+    display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: .35rem;
+    background: var(--seat); box-shadow: 0 0 0 1px rgb(255 255 255 / .08);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .film a:hover img, .film a:focus-visible img { transform: translateY(-4px); box-shadow: 0 0 0 2px var(--c0); }
+  .film a:focus-visible { outline: none; }
+  .film b { display: block; margin-top: .65rem; font-weight: 600; line-height: 1.25; }
+  .film span { color: var(--dust); font-size: .875rem; }
+  .film { position: relative; }
+  .seen {
+    position: absolute; top: .5rem; right: .5rem; width: 2rem; height: 2rem; border-radius: 50%;
+    border: 1px solid rgb(255 255 255 / .35); background: rgb(26 20 32 / .7); color: var(--paper);
+    font-size: .95rem; opacity: .75; backdrop-filter: blur(4px);
+  }
+  .seen:hover, .seen:focus-visible { opacity: 1; border-color: var(--c2); }
+  .seen[aria-pressed="true"] { background: var(--c2); border-color: var(--c2); color: var(--ink); opacity: 1; }
+  .watched { margin-top: 3.5rem; border-top: 1px solid var(--line); padding-top: 1.25rem; }
+  .watched summary { cursor: pointer; color: var(--dust); font-weight: 600; font-size: 1.1rem; width: fit-content; }
+  .watched summary:hover { color: var(--paper); }
+  .watched[open] summary { margin-bottom: 1.5rem; }
+  .watched .film img { filter: grayscale(.7) brightness(.8); }
+  .empty { color: var(--dust); font-size: 1.1rem; max-width: 34rem; }
+
+  @media (max-width: 30rem) {
+    main { padding-top: 2rem; }
+    .actions, .hint { padding-left: 0; margin-left: 0; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem 1rem; }
+    .circles span { width: 5rem; height: 5rem; margin-left: -2.2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .film img { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Common ground</h1>
+  <p class="lede">Paste two or more Letterboxd lists or watchlists to see the films on all of them.</p>
+
+  <form method="post" id="form">
+    <div id="rows">
+      {% for u in urls %}
+      <div class="row" style="--c: var(--c{{ loop.index0 % 5 }})">
+        <span class="ring" aria-hidden="true"></span>
+        <input name="url" type="text" inputmode="url" value="{{ u }}" aria-label="List {{ loop.index }} link"
+               placeholder="letterboxd.com/username/watchlist/">
+        <button type="button" class="remove" aria-label="Remove list {{ loop.index }}">×</button>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="actions">
+      <button type="button" class="add" id="add">Add another list</button>
+      <button type="submit" class="go" id="go">Find films in common</button>
+    </div>
+    <p class="hint">Works with public lists, watchlists and /films pages. Long lists can take a little while.</p>
+  </form>
+
+  {% if errors %}
+  <div class="errors" role="alert">{% for e in errors %}<p>{{ e }}</p>{% endfor %}</div>
+  {% endif %}
+
+  {% if lists and lists|length > 1 %}
+  <section class="result" aria-live="polite">
+    <div class="venn">
+      <div class="circles" aria-hidden="true">
+        {% for _ in lists %}<span style="--c: var(--c{{ loop.index0 % 5 }})"></span>{% endfor %}
+      </div>
+      <p class="count">{{ common|length }}<small>{{ "film" if common|length == 1 else "films" }} on all {{ lists|length }} lists</small></p>
+    </div>
+    <ul class="sources">
+      {% for title, films in lists %}
+      <li style="--c: var(--c{{ loop.index0 % 5 }})"><i></i>{{ title }} · {{ films|length }}</li>
+      {% endfor %}
+    </ul>
+    {% if common %}
+    <ul class="grid" id="unwatched">
+      {% for slug, name, year in common %}
+      <li class="film" data-slug="{{ slug }}">
+        <a href="https://letterboxd.com/film/{{ slug }}/" target="_blank" rel="noopener">
+          <img src="/poster/{{ slug }}" alt="" loading="lazy" width="230" height="345">
+          <b>{{ name }}</b>
+          {% if year %}<span>{{ year }}</span>{% endif %}
+        </a>
+        <button type="button" class="seen" aria-pressed="false" aria-label="Mark {{ name }} as watched">✓</button>
+      </li>
+      {% endfor %}
+    </ul>
+    <details class="watched" id="watched-box" hidden>
+      <summary>Watched <span id="watched-count"></span></summary>
+      <ul class="grid" id="watched"></ul>
+    </details>
+    {% else %}
+    <p class="empty">No film is on every list. Try dropping the most niche list, or compare two at a time.</p>
+    {% endif %}
+  </section>
+  {% elif lists %}
+  <p class="empty" style="margin-top:2rem">Add at least two working lists to compare.</p>
+  {% endif %}
+</main>
+
+<script>
+  const rows = document.getElementById("rows");
+  const relabel = () => [...rows.children].forEach((r, i) => {
+    r.style.setProperty("--c", `var(--c${i % 5})`);
+    r.querySelector("input").setAttribute("aria-label", `List ${i + 1} link`);
+    r.querySelector(".remove").setAttribute("aria-label", `Remove list ${i + 1}`);
+  });
+  document.getElementById("add").onclick = () => {
+    const row = rows.firstElementChild.cloneNode(true);
+    row.querySelector("input").value = "";
+    rows.append(row); relabel(); row.querySelector("input").focus();
+  };
+  rows.onclick = e => {
+    if (!e.target.matches(".remove")) return;
+    if (rows.children.length > 2) e.target.parentElement.remove(); else e.target.parentElement.querySelector("input").value = "";
+    relabel();
+  };
+  // Watched films live in this browser only, keyed by film slug.
+  const films = [...document.querySelectorAll(".film")];
+  let seen = new Set();
+  try { seen = new Set(JSON.parse(localStorage.getItem("watched") || "[]")); } catch {}
+  const place = () => {
+    const box = document.getElementById("watched-box");
+    if (!box) return;
+    for (const li of films) {
+      const on = seen.has(li.dataset.slug), btn = li.querySelector(".seen");
+      btn.setAttribute("aria-pressed", on);
+      btn.setAttribute("aria-label", btn.getAttribute("aria-label").replace(/^Mark (.*) as (un)?watched$/, `Mark $1 as ${on ? "un" : ""}watched`));
+      document.getElementById(on ? "watched" : "unwatched").append(li);
+    }
+    const n = films.filter(li => seen.has(li.dataset.slug)).length;
+    box.hidden = !n;
+    document.getElementById("watched-count").textContent = n;
+  };
+  document.querySelector(".result")?.addEventListener("click", e => {
+    const btn = e.target.closest(".seen");
+    if (!btn) return;
+    const slug = btn.parentElement.dataset.slug;
+    seen.has(slug) ? seen.delete(slug) : seen.add(slug);
+    try { localStorage.setItem("watched", JSON.stringify([...seen])); } catch {}
+    place();
+  });
+  place();
+
+  document.getElementById("form").onsubmit = () => {
+    const go = document.getElementById("go");
+    go.disabled = true; go.textContent = "Reading lists…";
+  };
+</script>
+</body>
+</html>
