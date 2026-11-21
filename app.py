@@ -1,5 +1,4 @@
 import html
-import json
 import os
 import re
 import socket
@@ -19,9 +18,9 @@ app = Flask(__name__, template_folder=os.path.join(getattr(sys, "_MEIPASS", os.p
 
 BASE = "https://letterboxd.com"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
-EMPTY_POSTER = "https://s.ltrbxd.com/static/img/empty-poster-230-AiuBHVCI.png"
 SLUG = re.compile(r"[a-z0-9-]+")
 FILM = re.compile(r'data-item-name="([^"]*)"[^>]*?data-item-slug="([^"]+)"')
+POSTER = re.compile(r'"image":"([^"]+)"')
 TITLE = re.compile(r'<meta property="og:title" content="([^"]*)"')
 pool = ThreadPoolExecutor(8)
 
@@ -65,16 +64,16 @@ def scrape(path):
 @lru_cache(maxsize=4096)
 def poster_url(slug):
     try:
-        return json.loads(fetch(f"{BASE}/film/{slug}/poster/std/230/"))["url"]
+        # The old /poster/std/230/ JSON endpoint now 403s; the film page's JSON-LD carries the poster.
+        return POSTER.search(fetch(f"{BASE}/film/{slug}/")).group(1).replace("\\/", "/")
     except Exception:
-        return EMPTY_POSTER
+        return None  # template's grey tile shows instead
 
 
 @app.get("/poster/<slug>")
 def poster(slug):
-    if not SLUG.fullmatch(slug):
-        abort(404)
-    return redirect(poster_url(slug))
+    url = SLUG.fullmatch(slug) and poster_url(slug)
+    return redirect(url) if url else abort(404)
 
 
 @app.route("/", methods=["GET", "POST"])
